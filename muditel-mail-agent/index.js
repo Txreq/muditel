@@ -32,7 +32,7 @@ app.post("/send", protected, (req, res) => {
         subject: "New message from " + req.body.name,
         content: req.body.content,
     })
-        .then((inf) => res.send(200))
+        .then((inf) => res.send(inf))
         .catch((err) => {
             console.log(err.message);
             res.send(404);

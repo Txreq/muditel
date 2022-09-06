@@ -1,8 +1,4 @@
 import {
-  Alert,
-  AlertIcon,
-  AlertTitle,
-  AlertDescription,
   Box,
   FormControl,
   HStack,
@@ -20,18 +16,14 @@ import Button from "../elements/Button";
 import Map from "../components/Map";
 
 // icons
-import { BsPerson, BsInbox, BsPhone, BsCheckCircle } from "react-icons/bs";
+import { BsPerson, BsInbox, BsPhone } from "react-icons/bs";
 import { HiOutlineMail } from "react-icons/hi";
 import { AiOutlineTwitter, AiFillLinkedin } from "react-icons/ai";
-import { MdErrorOutline } from "react-icons/md";
 
-import { useState, useRef, useEffect } from "react";
-
-// helpers
-import requestMailer from "../helpers/mailSend";
+import { useState, useRef } from "react";
 
 const Contact = () => {
-  const defaultState = {
+  const defaultEMOState = {
     name: "",
     email: "",
     content: "",
@@ -39,19 +31,49 @@ const Contact = () => {
 
   // sending mail
   const [isPending, setLoadingStatus] = useState(false);
-  const [showForm, setShowForm] = useState(true);
-  const [response, setResponse] = useState(true);
-  const [emailObject, updateEmailObject] = useState(defaultState);
+  const [emailObject, updateEmailObject] = useState(defaultEMOState);
 
   const formRef = useRef();
 
-  const sendEmail = () => {
-    // todo
+  const isValid = () => {
+    let isv = true;
+    for (const [key, value] of Object.entries(emailObject)) {
+      if (value.length === 0) {
+        isv = false;
+        break;
+      }
+    }
+
+    return isv;
   };
 
-  useEffect(() => {
-    formRef.current.addEventListener("submit", event => event.preventDefault());
-  }, []);
+  const sendEmail = () => {
+    setLoadingStatus(true);
+
+    let headers = new Headers().append(
+      "Content-Type",
+      "application/x-www-form-urlencoded"
+    );
+
+    let body = new URLSearchParams();
+    body.append("name", emailObject.name);
+    body.append("email", emailObject.email);
+    body.append("content", emailObject.content);
+
+    fetch("https://agonagbiaiujbnagohnad.tareqdev.repl.co/send", {
+      method: "POST",
+      redirect: "follow",
+      headers: headers,
+      body: body,
+    })
+      .then(_ => {
+        setLoadingStatus(false);
+        updateEmailObject({ ...defaultEMOState });
+      })
+      .catch(err => {
+        console.log(err.message);
+      });
+  };
 
   const changeHandler = event => {
     let name = event.target.name;
@@ -80,96 +102,78 @@ const Contact = () => {
         </Box>
 
         <FormControl ref={formRef} as={"form"} isRequired>
-          {showForm ? (
-            <Stack gap="10px">
-              <QInput
-                icon={BsPerson}
-                type="text"
-                placeholder="full name"
-                disabled={isPending}
-                name="name"
-                onChange={changeHandler}
-              />
-              <QInput
-                icon={HiOutlineMail}
-                type="email"
-                placeholder="your email"
-                disabled={isPending}
-                name="email"
-                onChange={changeHandler}
-              />
-              <QInput
-                type="text"
-                placeholder="feel free to say anything ..."
-                height="150px"
-                area={true}
-                disabled={isPending}
-                name="content"
-                onChange={changeHandler}
-              />
+          <Stack gap="10px">
+            <QInput
+              icon={BsPerson}
+              type="text"
+              placeholder="full name"
+              disabled={isPending}
+              name="name"
+              onChange={changeHandler}
+              value={emailObject.name}
+            />
+            <QInput
+              icon={HiOutlineMail}
+              type="email"
+              placeholder="your email"
+              disabled={isPending}
+              name="email"
+              value={emailObject.email}
+              onChange={changeHandler}
+            />
+            <QInput
+              type="text"
+              placeholder="feel free to say anything ..."
+              height="150px"
+              area={true}
+              disabled={isPending}
+              name="content"
+              value={emailObject.content}
+              onChange={changeHandler}
+            />
 
-              <HStack justifyContent={"space-between"}>
-                <HStack justifyContent={"flex-start"}>
-                  <Link href="https://twitter.com/MuditelS" isExternal>
-                    <IconButton icon={<Icon as={AiOutlineTwitter} />} />
-                  </Link>
-                  <Link
-                    href="https://www.linkedin.com/company/ciw-telecom/"
-                    isExternal
-                  >
-                    <IconButton icon={<Icon as={AiFillLinkedin} />} />
-                  </Link>
+            <HStack justifyContent={"space-between"}>
+              <HStack justifyContent={"flex-start"}>
+                <Link href="https://twitter.com/MuditelS" isExternal>
+                  <IconButton icon={<Icon as={AiOutlineTwitter} />} />
+                </Link>
+                <Link
+                  href="https://www.linkedin.com/company/ciw-telecom/"
+                  isExternal
+                >
+                  <IconButton icon={<Icon as={AiFillLinkedin} />} />
+                </Link>
 
-                  <VStack align="start" spacing="1px">
-                    <HStack>
-                      <Icon color="blue" as={BsPhone} />
-                      <Link fontWeight="600" href="tel:+971 4 8821851">
-                        +971 4 8821851
-                      </Link>
-                    </HStack>
+                <VStack align="start" spacing="1px">
+                  <HStack>
+                    <Icon color="blue" as={BsPhone} />
+                    <Link fontWeight="600" href="tel:+971 4 8821851">
+                      +971 4 8821851
+                    </Link>
+                  </HStack>
 
-                    <HStack>
-                      <Icon color="blue" as={BsInbox} />
-                      <Link fontWeight="600" href="mailto:info@muditel.com">
-                        info@muditel.com
-                      </Link>
-                    </HStack>
-                  </VStack>
-                </HStack>
-
-                <Button type="submit" disabled={isPending} onClick={() => {
-                  // todo
-                }}>
-                  {isPending ? "..." : "Send"}
-                </Button>
+                  <HStack>
+                    <Icon color="blue" as={BsInbox} />
+                    <Link fontWeight="600" href="mailto:info@muditel.com">
+                      info@muditel.com
+                    </Link>
+                  </HStack>
+                </VStack>
               </HStack>
-            </Stack>
-          ) : (
-            <Stack height="353px" justifyContent="center" alignItems="center">
-              <Alert
-                status={response === true ? "success" : "error"}
-                variant="subtle"
-                flexDirection="column"
-                alignItems="center"
-                justifyContent="center"
-                textAlign="center"
-                height="100%"
-                bgColor="transparent"
+
+              <Button
+                type="submit"
+                disabled={isPending}
+                onClick={() => {
+                  if (isValid()) {
+                    sendEmail();
+                  }
+                }}
               >
-                <AlertIcon boxSize="40px" mr={0} />
-                <AlertTitle mt={4} mb={1} fontSize="lg">
-                  {response === true
-                    ? "Message sent !"
-                    : "Failed to send your message"}
-                </AlertTitle>
-                <AlertDescription maxWidth="sm">
-                  {response === true
-                    ? "We will try to respond to your message as soon as possible. "
-                    : "Something went wrongg, try to reach us through phone number or email"}
-                </AlertDescription>
-              </Alert>
-            </Stack>
-          )}
+                {isPending ? "..." : "Send"}
+              </Button>
+            </HStack>
+          </Stack>
         </FormControl>
       </div>
     </section>
